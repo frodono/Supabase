@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase live db with jsTree</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+</head>
+
+<body>
+    <div id="jstree"></div>
+
+    <script>
+        const supabaseUrl = 'https://rgimzohtkvkufywiypxm.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJnaW16b2h0a3ZrdWZ5d2l5cHhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM2NzE0MDcsImV4cCI6MjA0OTI0NzQwN30.RfRFa6lecXpTXqTPGhQTu52pmH8TC5CFukq5SoDrGNo';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        document.addEventListener('DOMContentLoaded', async () => {
+            initTree()
+
+        });
+        // Initialize Supabase
+
+        // Fetch data from Supabase and format for jsTree
+        async function fetchTreeData() {
+            const { data, error } = await supabaseClient
+                .from('Conti')
+                .select('*');
+
+            if (error) {
+                console.error('Error fetching data:', error);
+                return [];
+            }
+
+            return data.map(node => ({
+                id: node.id,
+                parent: node.pid === null ? '#' : node.pid, // jsTree uses "#" as the root
+                text: node.text,
+            }));
+        }
+
+        // Initialize jsTree
+        async function initTree() {
+            const treeData = await fetchTreeData();
+
+            $('#jstree').jstree({
+                core: {
+                    data: treeData,
+                    check_callback: true // Enables CRUD operations
+                },
+                plugins: ['contextmenu', 'dnd', 'state', 'wholerow']
+            }).on('create_node.jstree', async (e, data) => {
+                // Add a new node to Supabase
+                const { node } = data;
+                const { error } = await supabaseClient
+                    .from('Conti')
+                    .insert({ text: node.text, pid: node.parent === '#' ? null : node.parent });
+
+                if (error) {
+                    console.error('Error creating node:', error);
+                }
+            }).on('rename_node.jstree', async (e, data) => {
+                // Update node name in Supabase
+                const { node } = data;
+                const { error } = await supabaseClient
+                    .from('Conti')
+                    .update({ text: node.text })
+                    .eq('id', node.id);
+
+                if (error) {
+                    console.error('Error renaming node:', error);
+                }
+            }).on('delete_node.jstree', async (e, data) => {
+                // Delete node from Supabase
+                const { node } = data;
+                const { error } = await supabaseClient
+                    .from('Conti')
+                    .delete()
+                    .eq('id', node.id);
+
+                if (error) {
+                    console.error('Error deleting node:', error);
+                }
+            });
+        }
+
+
+    </script>
+
+</body>
+
+</html>

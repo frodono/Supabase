@@ -1,0 +1,64 @@
+.container {
+    display: flex;
+    flex-direction: row;
+    gap: 50px;
+
+    justify-content: flex-start;
+    width: auto;
+    background-color: lightblue;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+    min-height: 200px;
+}
+
+.dx-treeList {
+    flex-grow: 0;
+    width: auto;
+}
+
+@media (max-width: 768px) {
+
+    /* Quando la larghezza dello schermo è inferiore a 768px (tipicamente tablet o mobile) */
+    .container {
+        flex-direction: column;
+        /* Gli elementi si dispongono uno sotto l'altro */
+    }
+}
+
+.node-bold {
+    font-weight: 700 !important;
+}
+
+.node-source {
+    /* verde per source */
+    color: green !important;
+}
+
+.node-target {
+    /* rosso per target */
+    color: red !important;
+}
+
+.node-both {
+    /* se è sia source che target */
+    color: orange !important;
+}
+
+/* Assicuriamoci di colpire il testo della cella (varia per versione DevExtreme) */
+#treelist .node-source td,
+#treelist .node-target td,
+#treelist .node-both td {
+    /* mantiene il colore sul testo */
+    color: inherit;
+}
+
+.icon-x {
+    cursor: pointer;
+    color: red;
+    font-weight: bold;
+    display: inline-block;
+}
+.ddx-treelist-action-cell {
+    display: flex;
+    justify-content: flex-end; /* allinea contenuto a destra */
+    align-items: center;       /* centra verticalmente */
+}

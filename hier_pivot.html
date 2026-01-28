@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Manager</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <!-- DevExtreme Styles and Scripts -->
+    <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/23.1.5/css/dx.common.css" />
+    <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/23.1.5/css/dx.light.css" />
+    <script src="https://cdn3.devexpress.com/jslib/23.1.5/js/dx.all.js"></script>
+
+    <style>
+        .container {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="pivotgrid"></div>
+
+    <script>
+        $(function () {
+            const rawData = [
+                { id: 2, parentId: 1, name: "USA" },
+                { id: 3, parentId: 2, name: "New York", sales: 5000, "mese": 1 },
+                { id: 4, parentId: 2, name: "Los Angeles", sales: 3000, "mese": 2 },
+                { id: 5, parentId: 1, name: "Canada" },
+                { id: 6, parentId: 5, name: "Toronto", sales: 4000, "mese": 4 },
+                { id: 7, parentId: 0, name: "Europe" },
+                { id: 8, parentId: 7, name: "Germany" },
+                { id: 9, parentId: 8, name: "Berlin", sales: 3500, "mese": 1 },
+                { id: 10, parentId: 7, name: "France" },
+                { id: 11, parentId: 10, name: "Paris" },
+                { id: 12, parentId: 11, name: "A", sales: 500, "mese": 2 },
+                { id: 13, parentId: 11, name: "B", sales: 1500, "mese": 3 },
+                { id: 1, parentId: 0, name: "North America", sales: 6000, "mese": 4 }
+            ];
+
+            const dataFields = ["mese","altri"]
+            function filterObject(obj, keys) {
+                return Object.fromEntries(
+                    Object.entries(obj).filter(([key]) => keys.includes(key))
+                );
+            }
+
+            // Step 1: Build the hierarchy with calculated sales
+            function buildHierarchy(data, parentId = 0) {
+                return data
+                    .filter(item => item.parentId === parentId)
+                    .map(item => {
+                        const children = buildHierarchy(data, item.id);
+                        const totalSales = children.reduce((sum, child) => sum + (child.sales || 0), 0) + (item.sales || 0);
+
+                        return {
+                            ...item,
+                            aggregatedSales: totalSales,
+                            children
+                        };
+                    });
+            }
+
+            const hierarchy = buildHierarchy(rawData);
+            console.log(hierarchy)
+            // Step 2: Flatten hierarchy and filter out empty rows
+            function flattenHierarchy(node, level = 0, parentFields = {}, includeAggregated = false) {
+                const currentLevelFields = {...parentFields };
+                // const nodeFields = filterObject(node,dataFields)
+                // Object.assign(currentLevelFields,nodeFields)
+                currentLevelFields[`level${level}`] = node.name;
+                const flatNodes = [];
+
+                if (includeAggregated || node.children.length === 0) {
+                    // Only include parent node's aggregated sales if collapsed
+                    flatNodes.push({
+                        ...node,
+                        ...currentLevelFields,
+                        sales: node.aggregatedSales
+                    });
+                }
+
+                // Add child nodes recursively
+                node.children.forEach(child => {
+                    flatNodes.push(...flattenHierarchy(child, level + 1, currentLevelFields, false));
+                });
+
+                return flatNodes;
+            }
+
+            let flattenedData = [];
+            hierarchy.forEach(rootNode => {
+                flattenedData.push(...flattenHierarchy(rootNode, 0, {}, true));
+            });
+            console.log(flattenedData); // Debugging: View filtered flattened data in console
+
+            // Remove rows with no sales data
+            flattenedData = flattenedData.filter(row => row.sales > 0);
+            // Ensure all rows have consistent levels
+            const maxLevel = Math.max(...flattenedData.map(row => Object.keys(row).filter(key => key.startsWith('level')).length));
+            flattenedData = flattenedData.map(row => {
+                for (let i = 0; i < maxLevel; i++) {
+                    if (!row[`level${i}`]) {
+                        row[`level${i}`] = row[`level${i - 1}`];
+                    }
+                }
+                return row;
+            });
+            console.log(flattenedData); // Debugging: View filtered flattened data in console
+
+            // Step 3: Dynamically build PivotGrid fields
+            const uniqueFields = new Set();
+            flattenedData.forEach(row => {
+                Object.keys(row).forEach(key => {
+                    if (key.startsWith('level')) uniqueFields.add(key);
+                    //  uniqueFields.add(key);
+                });
+            });
+
+            const pivotFields = [...uniqueFields].map((field, index) => ({
+                dataField: field,
+                caption: `Level ${index + 1}`,
+                area: "row"
+            }));
+
+            // Add the sales data field
+            pivotFields.push({
+                dataField: "sales",
+                caption: "Sales",
+                area: "data",
+                summaryType: "sum"
+            });
+
+            console.log(pivotFields); // Debugging: View dynamically generated fields
+
+            // Step 4: Configure PivotGrid
+            $("#pivotgrid").dxPivotGrid({
+                dataSource: {
+                    fields: pivotFields,
+                    store: flattenedData
+                },
+                allowSorting: true,
+                allowFiltering: true,
+                showBorders: true,
+                showColumnGrandTotals: true,
+                showRowGrandTotals: true,
+                fieldChooser: {
+                    enabled: true
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

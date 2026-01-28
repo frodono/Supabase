@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Manager</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <!-- DevExtreme Styles and Scripts -->
+    <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/23.1.5/css/dx.common.css" />
+    <!-- <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/23.1.5/css/dx.light.css" /> -->
+    <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/24.2.3/css/dx.material.blue.light.css" />
+
+    <link rel="stylesheet" href="splitter.css">
+    <script src="https://cdn3.devexpress.com/jslib/23.1.5/js/dx.all.js"></script>
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="connection.js"></script>
+    <script src="treeList.js"></script>
+    <link rel="stylesheet" href="index.css">
+    <script src="splitter.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+</head>
+
+<body>
+    <div id="main-container">
+        <div id="left-splitter">
+            <div id="toolbar"></div>
+            <div id="left-top">
+                <h3>Dimensioni</h3>
+                <div id="checkbox-list"></div>
+            </div>
+            <div id="left-center">
+            </div>
+
+            <div id="left-bottom" class="table">
+                <div id="header" class="row">
+                    <div class="cell">
+                        <input id="newDimName" type="text" title="Nome nuova Dimensione" />
+                        <button id="addDimension">+</button>
+                    </div>
+                    <div class="cell">
+                        <label for="filter">Filtro Tra Dimensioni</label>
+                        <button id="filter">Atttiva Filtro</button>
+                    </div>
+                    <div class="cell">
+                        <label for="mode">Modalità Tra Dimensioni</label>
+                        <button id="mode">Copia</button>
+                    </div>
+                    <div class="cell">
+                        <label for="swapGrid">Griglia</label>
+                        <button id="swapGrid">#</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div id="center-container">
+            <div id="top-splitter" class="table">
+                <div class="row">
+                    <div id="editMode" class="cell"></div>
+                    <div id="title" class="cell">Model Manager</div>
+                    <div class="cell">
+                        <button id="back">Annulla</button>
+                        <button id="foreward">Riesegui</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="dxTreeList.js"></script>
+    <script>
+    </script>
+
+</body>
+
+</html>
